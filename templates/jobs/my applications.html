@@ -1,0 +1,15 @@
+<h2>My Job Applications</h2>
+
+{% if applications %}
+    {% for app in applications %}
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+            <h4>{{ app.job.title }}</h4>
+            <p>{{ app.job.description }}</p>
+            <p><strong>Applied on:</strong> {{ app.applied_at }}</p>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>You have not applied for any jobs yet.</p>
+{% endif %}
+
+<a href="{% url 'jobs:job_list' %}">← Back to Jobs</a>

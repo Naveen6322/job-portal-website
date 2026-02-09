@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Job</title>
+</head>
+<body>
+    <h2>Create Job</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Job Title" required><br><br>
+        <textarea name="description" placeholder="Job Description" required></textarea><br><br>
+        <button type="submit">Post Job</button>
+    </form>
+
+    <br>
+    <a href="{% url 'jobs:dashboard' %}">Back</a>
+</body>
+</html>

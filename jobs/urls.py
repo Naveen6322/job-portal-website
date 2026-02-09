@@ -1,0 +1,18 @@
+from django.urls import path
+from . import views
+
+app_name = "jobs"
+
+urlpatterns = [
+    # job seeker
+    path("", views.job_list, name="job_list"),
+    path("apply/<int:job_id>/", views.apply_job, name="apply_job"),
+
+    # recruiter
+    path("recruiter/", views.recruiter_dashboard, name="recruiter_dashboard"),
+    path("dashboard/", views.dashboard, name="dashboard"),
+    path("create/", views.create_job, name="create"),
+    path("applications/<int:job_id>/",views.job_applications,name="job_applications"),
+    path("my-applications/", views.my_applications, name="my_applications"),
+
+]

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Applications</title>
+</head>
+<body>
+
+<h2>Applications for "{{ job.title }}"</h2>
+
+<a href="{% url 'jobs:dashboard' %}">⬅ Back to Dashboard</a>
+<br><br>
+
+{% if applications %}
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Candidate</th>
+            <th>Email</th>
+            <th>Applied At</th>
+        </tr>
+
+        {% for application in applications %}
+            <tr>
+                <td>{{ application.applicant.email }}</td>
+                <td>{{ application.applicant.email }}</td>
+                <td>{{ application.applied_at }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No applications yet.</p>
+{% endif %}
+
+</body>
+</html>

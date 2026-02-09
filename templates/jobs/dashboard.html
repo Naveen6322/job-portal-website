@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recruiter Dashboard</title>
+</head>
+<body>
+    <h2>Recruiter Dashboard</h2>
+
+    <a href="{% url 'jobs:create' %}">Post New Job</a> |
+    <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+
+    <h2>Recruiter Dashboard</h2>
+
+    {% for job in jobs %}
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <h3>{{ job.title }}</h3>
+        <p>Applications: {{ job.application_count }}</p>
+
+        <a href="{% url 'jobs:job_applications' job.id %}">
+            View Applications
+    </a>
+    </div>
+{% endfor %}
+
+   
+</a>
+    </form>
+    <h2>My Posted Jobs</h2>
+
+{% for job in jobs %}
+        <h3>{{ job.title }}</h3>
+        <p>{{ job.description }}</p>
+
+        <a href="{% url 'jobs:job_applications' job.id %}">
+            View Applications
+        </a>
+    </div>
+{% empty %}
+    <p>No jobs posted yet.</p>
+{% endfor %}
+
+    <hr>
+
+    {% if jobs %}
+        <ul>
+            {% for job in jobs %}
+                <li>
+                    <strong>{{ job.title }}</strong><br>
+                    {{ job.description }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No jobs posted yet.</p>
+    {% endif %}
+</body>
+</html>
