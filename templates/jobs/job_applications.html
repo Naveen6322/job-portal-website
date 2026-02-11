@@ -6,6 +6,25 @@
 <body>
 
 <h2>Applications for "{{ job.title }}"</h2>
+<h2>Applicants for "{{ job.title }}"</h2>
+
+{% for app in applications %}
+    <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+        <p><strong>{{ app.applicant.email }}</strong></p>
+        <p>Status: {{ app.status }}</p>
+
+        {% if app.status == "pending" %}
+            <a href="{% url 'jobs:accept_application' app.id %}">✅ Accept</a>
+            |
+            <a href="{% url 'jobs:reject_application' app.id %}">❌ Reject</a>
+        {% endif %}
+    </div>
+{% empty %}
+    <p>No applications yet.</p>
+{% endfor %}
+
+<a href="{% url 'jobs:dashboard' %}">⬅ Back</a>
+
 
 <a href="{% url 'jobs:dashboard' %}">⬅ Back to Dashboard</a>
 <br><br>
@@ -28,7 +47,26 @@
     </table>
 {% else %}
     <p>No applications yet.</p>
+    {% for app in applications %}
+<tr>
+    <td>{{ app.applicant.email }}</td>
+    <td>{{ app.applied_at }}</td>
+    <td>
+        {% if app.status == "pending" %}
+            <a href="{% url 'jobs:update_application_status' app.id 'accepted' %}">✅ Accept</a>
+            |
+            <a href="{% url 'jobs:update_application_status' app.id 'rejected' %}">❌ Reject</a>
+        {% elif app.status == "accepted" %}
+            ✅ Accepted
+        {% else %}
+            ❌ Rejected
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+
 {% endif %}
+
 
 </body>
 </html>

@@ -172,7 +172,7 @@ def dashboard(request):
 
     jobs = (
         Job.objects.filter(recruiter=request.user)
-        .annotate(application_count=Count("jobapplication"))
+        .annotate(application_count=Count("applications"))
     )
 
     return render(request, "jobs/dashboard.html", {"jobs": jobs})
@@ -193,4 +193,84 @@ def my_applications(request):
     )
 
 
+@login_required
+def accept_application(request, app_id):
+    application = get_object_or_404(
+        JobApplication,
+        id=app_id,
+        job__recruiter=request.user
+    )
+    application.status = "accepted"
+    application.save()
+    return redirect("jobs:job_applications", job_id=application.job.id)
+
+
+@login_required
+def reject_application(request, app_id):
+    application = get_object_or_404(
+        JobApplication,
+        id=app_id,
+        job__recruiter=request.user
+    )
+    application.status = "rejected"
+    application.save()
+    return redirect("jobs:job_applications", job_id=application.job.id)
+
+@login_required
+def my_applications(request):
+    if request.user.role != "candidate":
+        return render(request, "jobs/not_allowed.html")
+
+    applications = JobApplication.objects.filter(
+        applicant=request.user
+    ).select_related("job").order_by("-applied_at")
+
+    return render(
+        request,
+        "jobs/my_applications.html",
+        {"applications": applications}
+    )
+
+    messages.success(request, "Job applied successfully!")
+    return redirect("jobs:job_list")
+
+@login_required
+def apply_job(request, job_id):
+    if request.user.role != "candidate":
+        messages.error(request, "Only candidates can apply.")
+        return redirect("jobs:job_list")
+
+    job = get_object_or_404(Job, id=job_id)
+
+    already_applied = JobApplication.objects.filter(
+        job=job,
+        applicant=request.user
+    ).exists()
+
+    if already_applied:
+        messages.warning(request, "You already applied for this job.")
+        return redirect("jobs:job_list")
+
+    JobApplication.objects.create(
+        job=job,
+        applicant=request.user,
+        status="pending"
+    )
+
+    messages.success(request, "Job applied successfully!")
+    return redirect("jobs:job_list")
+
+@login_required
+def update_application_status(request, app_id, status):
+    application = get_object_or_404(JobApplication, id=app_id)
+
+    if request.user != application.job.recruiter:
+        messages.error(request, "Not authorized.")
+        return redirect("jobs:dashboard")
+
+    application.status = status
+    application.save()
+
+    messages.success(request, f"Application {status.capitalize()}!")
+    return redirect("jobs:dashboard")
 

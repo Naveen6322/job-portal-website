@@ -4,56 +4,39 @@
     <title>Recruiter Dashboard</title>
 </head>
 <body>
-    <h2>Recruiter Dashboard</h2>
 
-    <a href="{% url 'jobs:create' %}">Post New Job</a> |
-    <form method="post" action="{% url 'logout' %}">
+<h2>Recruiter Dashboard</h2>
+
+<!-- Top actions -->
+<a href="{% url 'jobs:create' %}">➕ Post New Job</a>
+
+<form method="post" action="{% url 'logout' %}" style="display:inline;">
     {% csrf_token %}
     <button type="submit">Logout</button>
+</form>
 
-    <h2>Recruiter Dashboard</h2>
+<hr>
 
+<h3>My Posted Jobs</h3>
+
+{% if jobs %}
     {% for job in jobs %}
-        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-        <h3>{{ job.title }}</h3>
-        <p>Applications: {{ job.application_count }}</p>
+        <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+            <h4>{{ job.title }}</h4>
+            <p>{{ job.description }}</p>
 
-        <a href="{% url 'jobs:job_applications' job.id %}">
-            View Applications
-    </a>
-    </div>
-{% endfor %}
+            <p>
+                <strong>Applications:</strong> {{ job.application_count }}
+            </p>
 
-   
-</a>
-    </form>
-    <h2>My Posted Jobs</h2>
-
-{% for job in jobs %}
-        <h3>{{ job.title }}</h3>
-        <p>{{ job.description }}</p>
-
-        <a href="{% url 'jobs:job_applications' job.id %}">
-            View Applications
-        </a>
-    </div>
-{% empty %}
+            <a href="{% url 'jobs:job_applications' job.id %}">
+                📄 View Applications
+            </a>
+        </div>
+    {% endfor %}
+{% else %}
     <p>No jobs posted yet.</p>
-{% endfor %}
+{% endif %}
 
-    <hr>
-
-    {% if jobs %}
-        <ul>
-            {% for job in jobs %}
-                <li>
-                    <strong>{{ job.title }}</strong><br>
-                    {{ job.description }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No jobs posted yet.</p>
-    {% endif %}
 </body>
 </html>
