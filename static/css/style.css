@@ -1,0 +1,31 @@
+body {
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.job-card {
+    transition: all 0.3s ease-in-out;
+    border-radius: 12px;
+}
+
+.job-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.navbar {
+    backdrop-filter: blur(10px);
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.btn-primary {
+    border-radius: 20px;
+    padding: 6px 20px;
+}
+
+.alert {
+    border-radius: 10px;
+}
