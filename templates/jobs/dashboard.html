@@ -37,6 +37,10 @@
             <a href="{% url 'jobs:job_applications' job.id %}">
                 📄 View Applications
             </a>
+            {% if app.resume %}
+    <a href="{{ application.resume.url }}" target="_blank">📄 View Resume</a>
+{% endif %}
+
         </div>
     {% endfor %}
 {% else %}
