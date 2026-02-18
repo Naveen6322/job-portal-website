@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from .decorators import recruiter_required
 from django.contrib import messages
 from django.db.models import Count
+from django.core.paginator import Paginator
 
 
 @login_required
@@ -19,7 +20,7 @@ def recruiter_dashboard(request):
 
     return HttpResponse("Welcome Recruiter")
 
-
+@login_required
 @login_required
 def job_list(request):
     if request.user.role != "candidate":
@@ -27,37 +28,61 @@ def job_list(request):
 
     jobs = Job.objects.all().order_by("-created_at")
 
-    applied_jobs = JobApplication.objects.filter(
-        applicant=request.user
-    ).values_list("job_id", flat=True)
+    query = request.GET.get("q")
 
-    return render(
-        request,
-        "jobs/job_list.html",
-        {
-            "jobs": jobs,
-            "applied_jobs": applied_jobs,
-        }
-    )
+    if query:
+        jobs = jobs.filter(
+            title__icontains=query
+        ) | jobs.filter(
+            description__icontains=query
+        )
 
-@login_required
-def apply_job(request, job_id):
-   if request.user.role != "candidate":
+    paginator = Paginator(jobs, 5)  # Show 5 jobs per page
 
-    return render(request, "403.html")
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
-    job = get_object_or_404(Job, id=job_id)
+    return render(request, "jobs/job_list.html", {
+        "page_obj": page_obj,
+        "query": query
+    })
 
 @login_required
 def apply_job(request, job_id):
+    if request.user.role != "candidate":
+        messages.error(request, "Only candidates can apply.")
+        return redirect("jobs:job_list")
+
     job = get_object_or_404(Job, id=job_id)
 
-    JobApplication.objects.get_or_create(
-        job=job,
-        applicant=request.user
-    )
+    if request.method == "POST":
+        resume = request.FILES.get("resume")
 
-    return render(request, "jobs/applied.html")
+        if not resume:
+            messages.error(request, "Please upload a resume.")
+            return redirect("jobs:job_list")
+
+        # Prevent duplicate application
+        if JobApplication.objects.filter(
+            job=job,
+            applicant=request.user
+        ).exists():
+            messages.warning(request, "You already applied.")
+            return redirect("jobs:job_list")
+
+        JobApplication.objects.create(
+            job=job,
+            applicant=request.user,
+            resume=resume,
+            status="pending"
+        )
+
+        messages.success(request, "Applied successfully!")
+        return redirect("jobs:job_list")
+
+    return redirect("jobs:job_list")
+
+
 
 @login_required
 def dashboard(request):
@@ -87,60 +112,11 @@ def create_job(request):
 
     return render(request, "jobs/create_job.html")
 
-@login_required
-def apply_job(request, job_id):
-    if request.user.role != "candidate":
-        return redirect("jobs:list")
 
-    job = get_object_or_404(Job, id=job_id)
-
-    JobApplication.objects.get_or_create(
-        job=job,
-        applicant=request.user
-    )
-
-    return redirect("jobs:list")
-
-@login_required
-def apply_job(request, job_id):
-    if request.user.role != "candidate":
-        return redirect("jobs:job_list")
-
-    if request.method == "POST":
-        job = get_object_or_404(Job, id=job_id)
-
-        JobApplication.objects.get_or_create(
-            job=job,
-            applicant=request.user
-        )
-
-        messages.success(request, "Applied successfully!")
-        return redirect("jobs:job_list")
-
-@login_required
-def apply_job(request, job_id):
-    if request.user.role != "candidate":
-        return render(request, "jobs/not_allowed.html")
-
-    job = get_object_or_404(Job, id=job_id)
-
-    # ❌ Prevent duplicate application
-    if JobApplication.objects.filter(job=job, applicant=request.user).exists():
-        messages.warning(request, "You already applied for this job.")
-        return redirect("jobs:job_list")
-
-    JobApplication.objects.create(
-        job=job,
-        applicant=request.user
-    )
-
-    messages.success(request, "Job applied successfully!")
-    return redirect("jobs:job_list")
-    
 @login_required
 def job_applications(request, job_id):
     if request.user.role != "recruiter":
-        return render(request, "jobs/not_allowed.html")
+        return render(request, "jobs/not_allowedhtml")
 
     job = get_object_or_404(Job, id=job_id, recruiter=request.user)
     applications = JobApplication.objects.filter(job=job)
@@ -172,7 +148,8 @@ def dashboard(request):
 
     jobs = (
         Job.objects.filter(recruiter=request.user)
-        .annotate(application_count=Count("applications"))
+        .annotate(application_count=Count("jobapplication"))
+
     )
 
     return render(request, "jobs/dashboard.html", {"jobs": jobs})
@@ -234,31 +211,7 @@ def my_applications(request):
     messages.success(request, "Job applied successfully!")
     return redirect("jobs:job_list")
 
-@login_required
-def apply_job(request, job_id):
-    if request.user.role != "candidate":
-        messages.error(request, "Only candidates can apply.")
-        return redirect("jobs:job_list")
 
-    job = get_object_or_404(Job, id=job_id)
-
-    already_applied = JobApplication.objects.filter(
-        job=job,
-        applicant=request.user
-    ).exists()
-
-    if already_applied:
-        messages.warning(request, "You already applied for this job.")
-        return redirect("jobs:job_list")
-
-    JobApplication.objects.create(
-        job=job,
-        applicant=request.user,
-        status="pending"
-    )
-
-    messages.success(request, "Job applied successfully!")
-    return redirect("jobs:job_list")
 
 @login_required
 def update_application_status(request, app_id, status):

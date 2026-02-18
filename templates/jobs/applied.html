@@ -2,6 +2,18 @@
 
 {% block content %}
 
+<form method="POST"
+      enctype="multipart/form-data"
+      action="{% url 'jobs:apply_job' job.id %}">
+    {% csrf_token %}
+
+    <input type="file" name="resume" required>
+
+    <button type="submit">Apply</button>
+</form>
+
+
+
 
 <h2>Application submitted successfully!</h2>
 <a href="/jobs/">Back to Jobs</a>
